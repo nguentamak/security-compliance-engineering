@@ -1,0 +1,36 @@
+name: identity-dev
+
+on:
+  workflow_dispatch: {}
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    environment: dev   # IMPORTANT: doit matcher github_env = "dev"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+
+      # Login Azure (OIDC) avec un SP "bootstrap" déjà existant (voir note plus bas)
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.BOOTSTRAP_AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Terraform Apply (identity-sp)
+        working-directory: identity-sp
+        run: |
+          terraform init
+          terraform apply -auto-approve -var-file="dev.tfvars"
+
+      - name: Show outputs
+        working-directory: identity-sp
+        run: |
+          terraform output -json
