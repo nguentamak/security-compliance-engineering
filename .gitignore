@@ -9,6 +9,6 @@ crash.*.log
 *.tfvars
 *.tfvars.json
 
-# OS
+# O
 .DS_Store
 Thumbs.db
